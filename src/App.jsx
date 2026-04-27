@@ -101,6 +101,13 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-blue-200 to-purple-300 font-sans text-gray-800 flex flex-col items-center py-6 px-4">
+      {/* Custom Family Header */}
+      <div className="w-full max-w-2xl text-center mb-4">
+        <h2 className="text-xl sm:text-2xl font-black text-purple-800 drop-shadow-md tracking-wide">
+          ✨ Tanya & Kabir play to learn ✨
+        </h2>
+      </div>
+
       {/* Header */}
       <div className="w-full max-w-2xl flex justify-between items-center mb-8 bg-white p-4 rounded-3xl shadow-lg border-b-4 border-gray-200">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-400">
