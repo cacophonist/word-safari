@@ -78,7 +78,7 @@ const shuffleArray = (array) => [...array].sort(() => Math.random() - 0.5);
 
 // --- MAIN APP COMPONENT ---
 export default function App() {
-  const [view, setView] = useState('menu'); // 'menu', 'scramble', 'missing', 'match'
+  const [view, setView] = useState('menu'); // 'menu', 'scramble', 'missing', 'match', 'math'
   const [score, setScore] = useState(0);
   const [feedback, setFeedback] = useState(null); // { type: 'success' | 'error', message: string }
 
@@ -134,6 +134,7 @@ export default function App() {
         {view === 'scramble' && <GameScramble onWin={handleWin} onLose={handleLose} feedback={feedback} />}
         {view === 'missing' && <GameMissingLetter onWin={handleWin} onLose={handleLose} feedback={feedback} />}
         {view === 'match' && <GameWordMatch onWin={handleWin} onLose={handleLose} feedback={feedback} />}
+        {view === 'math' && <GameNumberTable onWin={handleWin} onLose={handleLose} feedback={feedback} />}
 
         {/* Global Feedback Overlay */}
         {feedback && (
@@ -157,6 +158,7 @@ function MainMenu({ setView }) {
     { id: 'scramble', title: 'Word Scramble', desc: 'Put the letters in order!', icon: '🔀', color: 'from-pink-400 to-rose-500', shadow: 'border-rose-600' },
     { id: 'missing', title: 'Missing Letter', desc: 'Find the hidden letter!', icon: '🔍', color: 'from-blue-400 to-cyan-500', shadow: 'border-cyan-600' },
     { id: 'match', title: 'Word Match', desc: 'Match word to picture!', icon: '✨', color: 'from-green-400 to-emerald-500', shadow: 'border-emerald-600' },
+    { id: 'math', title: 'Number Table Time', desc: 'Strawberry Math!', icon: '🍓', color: 'from-orange-400 to-red-500', shadow: 'border-red-600' },
   ];
 
   return (
@@ -199,7 +201,6 @@ function GameScramble({ onWin, onLose, feedback }) {
     
     setCurrentWord(newWord);
     
-    // Scramble letters ensuring it's actually scrambled
     let letters = newWord.word.split('');
     let scrambled = shuffleArray(letters);
     while (scrambled.join('') === newWord.word) {
@@ -212,16 +213,14 @@ function GameScramble({ onWin, onLose, feedback }) {
 
   useEffect(() => { initGame(); }, []);
 
-  // Auto-check when slots are full
   useEffect(() => {
     if (targetSlots.every(slot => slot !== null)) {
       const spelledWord = targetSlots.map(slot => slot.char).join('');
       if (spelledWord === currentWord.word) {
         onWin();
-        setTimeout(initGame, 1500); // Load next after feedback
+        setTimeout(initGame, 1500); 
       } else {
         onLose();
-        // Reset slots after a short delay
         setTimeout(() => {
           setSourceLetters(prev => prev.map(l => ({...l, used: false})));
           setTargetSlots([null, null, null, null]);
@@ -246,13 +245,10 @@ function GameScramble({ onWin, onLose, feedback }) {
 
   const handleTargetClick = (slot, index) => {
     if (!slot || feedback) return;
-    
-    // Remove from slot
     const newSlots = [...targetSlots];
     newSlots[index] = null;
     setTargetSlots(newSlots);
 
-    // Make available in source again
     const newSource = [...sourceLetters];
     newSource[newSource.findIndex(l => l.id === slot.id)].used = false;
     setSourceLetters(newSource);
@@ -263,8 +259,6 @@ function GameScramble({ onWin, onLose, feedback }) {
   return (
     <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl w-full flex flex-col items-center">
       <div className="text-8xl mb-8 animate-bounce">{currentWord.emoji}</div>
-      
-      {/* Target Slots */}
       <div className="flex gap-3 sm:gap-6 mb-12">
         {targetSlots.map((slot, i) => (
           <div 
@@ -272,9 +266,7 @@ function GameScramble({ onWin, onLose, feedback }) {
             onClick={() => handleTargetClick(slot, i)}
             className={`
               w-16 h-20 sm:w-20 sm:h-24 rounded-2xl flex items-center justify-center text-4xl font-bold cursor-pointer
-              ${slot 
-                ? 'bg-blue-400 text-white border-b-8 border-blue-600 shadow-md' 
-                : 'bg-gray-100 border-4 border-dashed border-gray-300'}
+              ${slot ? 'bg-blue-400 text-white border-b-8 border-blue-600 shadow-md' : 'bg-gray-100 border-4 border-dashed border-gray-300'}
               transition-all
             `}
           >
@@ -282,8 +274,6 @@ function GameScramble({ onWin, onLose, feedback }) {
           </div>
         ))}
       </div>
-
-      {/* Source Letters */}
       <div className="flex gap-3 sm:gap-6">
         {sourceLetters.map((letter) => (
           <button
@@ -292,9 +282,7 @@ function GameScramble({ onWin, onLose, feedback }) {
             className={`
               w-16 h-20 sm:w-20 sm:h-24 rounded-2xl flex items-center justify-center text-4xl font-bold
               transition-all duration-200
-              ${letter.used 
-                ? 'bg-gray-200 text-transparent border-gray-200 opacity-50 cursor-default scale-95' 
-                : 'bg-pink-400 text-white border-b-8 border-pink-600 hover:bg-pink-500 active:border-b-0 active:translate-y-2 cursor-pointer shadow-lg'}
+              ${letter.used ? 'bg-gray-200 text-transparent border-gray-200 opacity-50 cursor-default scale-95' : 'bg-pink-400 text-white border-b-8 border-pink-600 hover:bg-pink-500 active:border-b-0 active:translate-y-2 cursor-pointer shadow-lg'}
             `}
           >
             {letter.char}
@@ -320,12 +308,7 @@ function GameMissingLetter({ onWin, onLose, feedback }) {
     
     const options = shuffleArray([correctLetter, ...wrongLetters]);
     
-    setCurrentData({
-      ...wordObj,
-      missingIdx,
-      correctLetter,
-      options
-    });
+    setCurrentData({ ...wordObj, missingIdx, correctLetter, options });
   };
 
   useEffect(() => { initGame(); }, []);
@@ -345,25 +328,19 @@ function GameMissingLetter({ onWin, onLose, feedback }) {
   return (
     <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl w-full flex flex-col items-center">
       <div className="text-8xl mb-8 bg-blue-100 p-6 rounded-full shadow-inner">{currentData.emoji}</div>
-      
-      {/* Word Display with Blank */}
       <div className="flex gap-3 sm:gap-6 mb-12">
         {currentData.word.split('').map((char, i) => (
           <div 
             key={i}
             className={`
               w-16 h-20 sm:w-20 sm:h-24 rounded-2xl flex items-center justify-center text-5xl font-extrabold
-              ${i === currentData.missingIdx 
-                ? 'bg-gray-100 border-b-8 border-gray-300 text-transparent border-dashed' 
-                : 'bg-green-400 text-white border-b-8 border-green-600 shadow-md'}
+              ${i === currentData.missingIdx ? 'bg-gray-100 border-b-8 border-gray-300 text-transparent border-dashed' : 'bg-green-400 text-white border-b-8 border-green-600 shadow-md'}
             `}
           >
             {i === currentData.missingIdx ? '_' : char}
           </div>
         ))}
       </div>
-
-      {/* Letter Options */}
       <div className="flex gap-4 sm:gap-6 w-full justify-center flex-wrap">
         {currentData.options.map((letter, i) => (
           <button
@@ -385,17 +362,10 @@ function GameWordMatch({ onWin, onLose, feedback }) {
 
   const initGame = () => {
     let correctWordObj = getRandomItem(wordBank);
-    
-    // Get 2 random wrong words
     let otherWords = wordBank.filter(w => w.word !== correctWordObj.word);
     let wrongWords = shuffleArray(otherWords).slice(0, 2);
-    
     const options = shuffleArray([correctWordObj, ...wrongWords]);
-    
-    setCurrentData({
-      correct: correctWordObj,
-      options: options
-    });
+    setCurrentData({ correct: correctWordObj, options: options });
   };
 
   useEffect(() => { initGame(); }, []);
@@ -417,8 +387,6 @@ function GameWordMatch({ onWin, onLose, feedback }) {
       <div className="bg-yellow-100 w-48 h-48 rounded-full flex items-center justify-center text-9xl mb-12 shadow-inner border-4 border-yellow-200">
         {currentData.correct.emoji}
       </div>
-      
-      {/* Word Options */}
       <div className="flex flex-col gap-4 w-full sm:w-3/4">
         {currentData.options.map((opt, i) => (
           <button
@@ -430,6 +398,109 @@ function GameWordMatch({ onWin, onLose, feedback }) {
           </button>
         ))}
       </div>
+    </div>
+  );
+}
+
+// --- GAME 4: NUMBER TABLE TIME ---
+function GameNumberTable({ onWin, onLose, feedback }) {
+  const [data, setData] = useState(null);
+  const [inputVal, setInputVal] = useState("");
+
+  const initGame = () => {
+    const x = Math.floor(Math.random() * 11); // Random 0 to 10
+    const y = Math.floor(Math.random() * 11); // Random 0 to 10
+    const z = x * y;
+    
+    const blanks = ['x', 'y', 'z'];
+    const blank = blanks[Math.floor(Math.random() * blanks.length)];
+    
+    const signs = ['X', 'times', 'multiplied by'];
+    const sign = signs[Math.floor(Math.random() * signs.length)];
+
+    setData({ x, y, z, blank, sign });
+    setInputVal("");
+  };
+
+  useEffect(() => { initGame(); }, []);
+
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (feedback) return;
+    if (inputVal.trim() === "") return;
+    
+    let correctValue;
+    if (data.blank === 'x') correctValue = data.x;
+    else if (data.blank === 'y') correctValue = data.y;
+    else correctValue = data.z;
+
+    if (parseInt(inputVal) === correctValue) {
+      onWin();
+      setTimeout(initGame, 1500);
+    } else {
+      onLose();
+      setInputVal("");
+    }
+  };
+
+  if (!data) return null;
+
+  const renderInputField = () => (
+    <input
+      type="number"
+      value={inputVal}
+      onChange={(e) => setInputVal(e.target.value)}
+      className="w-20 h-20 sm:w-24 sm:h-24 text-center text-4xl sm:text-5xl font-bold bg-white text-blue-700 border-b-8 border-gray-300 rounded-2xl focus:outline-none focus:border-orange-500 mx-2 shadow-inner"
+      autoFocus
+      placeholder="?"
+    />
+  );
+
+  return (
+    <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl w-full flex flex-col items-center">
+      
+      {/* Equation Area */}
+      <form onSubmit={handleSubmit} className="flex flex-col items-center w-full">
+        <div className="flex flex-wrap justify-center items-center gap-2 sm:gap-4 text-3xl sm:text-5xl font-extrabold text-gray-700 mb-8">
+          {data.blank === 'x' ? renderInputField() : <span className="px-2">{data.x}</span>}
+          
+          <span className="text-orange-500 text-2xl sm:text-4xl italic px-2">{data.sign}</span>
+          
+          {data.blank === 'y' ? renderInputField() : <span className="px-2">{data.y}</span>}
+          
+          <span className="text-gray-400">=</span>
+          
+          {data.blank === 'z' ? renderInputField() : <span className="px-2">{data.z}</span>}
+        </div>
+
+        <button 
+          type="submit"
+          className="px-8 py-4 bg-green-400 hover:bg-green-500 text-white font-bold text-2xl rounded-2xl border-b-8 border-green-600 active:border-b-0 active:translate-y-2 transition-all shadow-lg w-full sm:w-auto"
+        >
+          Check Answer ✔️
+        </button>
+      </form>
+
+      {/* Visual Strawberries Area */}
+      <div className="mt-12 w-full flex flex-col items-center bg-red-50 py-6 px-4 rounded-3xl border-4 border-red-100 min-h-[150px] justify-center overflow-hidden">
+        <h3 className="text-lg font-bold text-red-400 mb-4 uppercase tracking-wide">Count the Strawberries</h3>
+        
+        {data.z === 0 ? (
+          <div className="text-gray-400 font-bold text-2xl italic py-4">No strawberries! (0)</div>
+        ) : (
+          <div 
+            className="grid gap-1 sm:gap-2 justify-center" 
+            style={{ gridTemplateColumns: `repeat(${data.y}, max-content)` }}
+          >
+            {Array.from({ length: data.z }).map((_, i) => (
+              <span key={i} className="text-2xl sm:text-3xl leading-none block transform hover:scale-125 transition-transform cursor-default">
+                🍓
+              </span>
+            ))}
+          </div>
+        )}
+      </div>
+
     </div>
   );
 }
